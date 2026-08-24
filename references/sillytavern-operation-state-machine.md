@@ -53,7 +53,7 @@ Record one immutable `deploymentMethod` before the first write:
 4. Copy to a non-card temporary extension in the same target directory, verify size and SHA-256, then atomically rename or replace the final extension. Never patch a deployed PNG.
 5. Deploy declared standalone/linked test worldbooks under run-scoped names only when required. Embedded `character_book` content needs no separate copy.
 6. Trigger the target version's safe list refresh or page reload. Do not infer live recognition from the file alone.
-7. Select the candidate with a stable locator or verified host operation and re-read its running display name, version, filename, worldbook mode, scripts, regexes, and capability markers.
+7. Resolve exactly one candidate in the refreshed runtime inventory by the declared test filename plus embedded/display identity, activate it with a version-verified host operation, and re-read its running display name, version, filename, worldbook mode, scripts, regexes, and capability markers. If direct activation is unavailable, use exact search and require one semantic result before activation. Never use list position, recency sorting, avatar artwork, visual card-wall scanning, or coordinates to discover the candidate.
 
 If step 6 does not reveal a directly deployed candidate:
 
@@ -128,15 +128,15 @@ Use visual inspection only when semantic access is insufficient or the acceptanc
 
 ## Authorized production promotion
 
-Enter this sequence only after all declared `variable-repair` release gates pass and the run already records production-replacement authority:
+Enter this sequence only after all declared `variable-repair` release gates pass and the run already records production-promotion authority and whether the exact production target initially is `existing` or `absent`:
 
 ```text
 test-passed
 -> production-identity artifact parity verified
 -> test card no longer active
 -> host and helper writes quiescent
--> exact production PNG backed up outside host data stores
--> production PNG atomically replaced
+-> existing: exact production PNG backed up outside host data stores, then atomically replaced
+-> absent: zero path and host-identity collisions proven, then production PNG atomically created
 -> host fully reloaded
 -> production identity and complete payload verified
 -> initialization, settlement, persistence, and HUD smoke passed
@@ -145,10 +145,10 @@ test-passed
 
 Prove quiescence using the strongest available host or extension signal; elapsed time alone is insufficient. The production artifact must come from the same source revision as the passing candidate and may differ only in declared identity fields and required packaging metadata.
 
-If any post-replacement check fails, restore the exact backup atomically and verify its SHA-256 and running identity before deleting the test slot. Record the failed promotion and rollback evidence. Do not treat a restored file as a verified rollback until the host reloads and recognizes it.
+If any post-promotion check fails, roll back according to the recorded initial state before deleting the test slot. For `existing`, restore the exact backup atomically and verify its SHA-256 and running identity after reload. For `absent`, remove only the run-created production target and reload until both its exact path and host identity are absent. Record the failed promotion and rollback evidence; a filesystem mutation alone is not a verified rollback.
 
 ## End and cleanup
 
 Mark every mutation: deployed file, standalone worldbook, created test chat, generated floor, setting change, reload, retry, production replacement, rollback, and deletion. Restore temporary nonpersistent UI state when safe.
 
-After successful authorized promotion, delete only artifacts recorded as owned by this run: the stable test card, its run-created chats, run-owned standalone test worldbooks, and obsolete temporary files. Preserve production chats, unrelated cards and worldbooks, extension settings, the structured receipt, and one rollback backup outside SillyTavern data stores. On failure or blockage, capture evidence first and do not replace production.
+After successful authorized promotion, delete only artifacts recorded as owned by this run: the stable test card, its run-created chats, run-owned standalone test worldbooks, and obsolete temporary files. Preserve production chats, unrelated cards and worldbooks, extension settings, the structured receipt, and one rollback backup outside SillyTavern data stores only when production previously existed. On failure or blockage, capture evidence first and do not mutate production beyond the verified rollback path.

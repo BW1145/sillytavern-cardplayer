@@ -114,8 +114,11 @@ Produce JSON plus a concise human summary. Use `pass`, `fail`, `blocked`, `not_a
   ],
   "promotion": {
     "authorized": false,
+    "productionInitialState": "absent",
+    "productionOperation": "create",
     "sourceRevisionMatched": null,
     "productionArtifactSha256": null,
+    "originalProductionSha256": null,
     "backupPath": null,
     "backupSha256": null,
     "writesQuiescent": null,
@@ -162,7 +165,7 @@ Omit mode-inapplicable or unavailable optional detail rather than inventing it. 
 - `human-playtest`: `nextOwner` is always `user`. The report cannot authorize its own recommendations.
 - `full-gate`: technical failures may route through the repair loop, but after the human phase `nextOwner` is `user`.
 
-`human-playtest` never authorizes or populates a production promotion. In `full-gate`, leave promotion pending after the human report until the user makes a new decision. In `variable-repair`, promotion may proceed only when the authority and exact production target were recorded before testing.
+`human-playtest` never authorizes or populates a production promotion. In `full-gate`, leave promotion pending after the human report until the user makes a new decision. In `variable-repair`, promotion may proceed only when the authority, exact production target, and its `existing` or `absent` initial state were recorded before testing. Use `replace` plus backup restoration for `existing`; use `create` plus removal-and-absence verification for `absent`.
 
 No mode result may silently fill an untested release gate. `validatedScope`, `untestedScope`, and actor-attributed mutations are required even when the run stops early.
 

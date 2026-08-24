@@ -33,6 +33,7 @@ Use an immutable candidate receipt for every iteration. A filename or “latest 
   "forbiddenRegressions": ["opening submit breaks", "existing chat mutates"],
   "promotion": {
     "authorized": true,
+    "productionInitialState": "absent",
     "productionDisplayName": "Example Card",
     "productionFileName": "example-card.png",
     "cleanupOnSuccess": true
@@ -49,6 +50,7 @@ Accept project-specific field names when their meanings are unambiguous. Reject 
 - the deployment method is absent, changes within an iteration, or permits a second creation attempt after the candidate reaches the store;
 - required checks or forbidden regressions are absent;
 - the acceptance scope or complete release gate set is missing, making a scoped verdict impossible;
+- promotion is authorized but the production target's initial state is not recorded as `existing` or `absent`;
 - the candidate was modified after its receipt was created.
 
 Do not make a convenient PNG inside the test skill. Ask `sillytavern-card-pipeline` to produce and verify it so the test exercises the real packaging chain.
@@ -80,6 +82,7 @@ Never patch the deployed PNG, packed JSON, live worldbook, message variables, or
 - Treat a copied file as `deployed-unverified` until SillyTavern reports the same candidate ID/version and required embedded surfaces.
 - A list/cache miss does not return the slot to `absent`. Re-probe the installed path and hash, then refresh or reload against the same file; never import or copy the candidate under another filename as a visibility retry.
 - Before creating the iteration chat, require exactly one matching payload in the character store and one host-visible identity for the declared test display name. A duplicate is a deployment failure, not a second candidate.
+- Resolve and activate that unique host identity from the refreshed runtime inventory using the declared test filename plus embedded/display identity. Use a version-verified host operation when available, with exact search plus a unique semantic result only as fallback. List order, recency sorting, avatar artwork, visual card-wall scanning, and coordinates cannot establish identity.
 - Never patch the deployed slot. The pipeline builds and verifies each replacement PNG before atomic deployment.
 
 ## Failure return
@@ -92,6 +95,9 @@ For human-playtest experience issues, return the full-chat causal analysis and t
 
 Passing means the selected acceptance scope passed; it does not imply that untested release gates passed. Mark whole-card release ready only when the receipt declares the complete release gate set and every gate has direct evidence.
 
-Production promotion is allowed only for `variable-repair` when its authority, production target, and cleanup policy were recorded before testing. Require a separately built production-identity artifact from the same passing source revision. It may differ from the test artifact only in declared identity and required packaging metadata; verify both artifacts before host mutation.
+Production promotion is allowed only for `variable-repair` when its authority, production target, initial target state, and cleanup policy were recorded before testing. Require a separately built production-identity artifact from the same passing source revision. It may differ from the test artifact only in declared identity and required packaging metadata; verify both artifacts before host mutation.
 
-After successful production smoke checks, remove only run-owned test-slot, test-chat, standalone test-worldbook, and temporary deployment artifacts. Keep the receipt and one rollback backup outside SillyTavern data directories. If promotion fails, verify rollback before cleanup. `human-playtest` never promotes; `full-gate` stops after the human report and waits for the user.
+- If `productionInitialState` is `existing`, prove the exact current production path, identity, and hash, back it up outside SillyTavern data directories, then atomically replace it. A failed promotion restores and re-verifies that exact backup.
+- If `productionInitialState` is `absent`, prove zero stored-path and host-identity collisions, then atomically create the production target. A failed promotion removes only that run-created target and reloads the host until the recorded production path and identity are absent again; do not require or invent an old-card backup.
+
+After successful production smoke checks, remove only run-owned test-slot, test-chat, standalone test-worldbook, and temporary deployment artifacts. Keep the receipt and, when production previously existed, one rollback backup outside SillyTavern data directories. If promotion fails, verify the matching restore-or-remove rollback before cleanup. `human-playtest` never promotes; `full-gate` stops after the human report and waits for the user.
