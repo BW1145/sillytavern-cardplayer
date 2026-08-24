@@ -17,6 +17,8 @@ The player may not see source files, worldbook secrets, future scenes, hidden va
 
 Before the human-playtest begins, require a user-supplied play objective. If it is already explicit in the request, record it without asking again; otherwise ask the user. Do not replace this gate with an inferred genre goal, a default turn count, or “play generally.”
 
+Before handing context to the player, the technical side may make a coarse audience inference from only the card title, character configuration, and a worldbook overview. Record a sanitized soft-trait `audienceProfile` with optional gender tendency, topic interests, risk attitude, communication habits, and familiarity with the genre. Treat every trait as a tentative tendency: if evidence is insufficient, leave it unspecified, and never turn a topic statistic into a fact. Withhold plot answers, hidden rules, concrete worldbook facts, variables, update blocks, and test expectations. Pass only the profile's soft traits to the player as light background; retain its rationale for the auditor and final report. Do not change the rest of this simulator's selection, seed, memory, continuation, or terminal rules.
+
 At the start, infer and record only the remaining player context:
 
 - the role and voice implied for `{{user}}`;

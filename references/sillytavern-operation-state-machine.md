@@ -1,6 +1,6 @@
 # SillyTavern Operation State Machine
 
-Use this reference before touching a live host. Discover exact behavior from the target version; labels and storage paths vary.
+Use this reference before touching a live host. Discover exact behavior from the target version; labels and storage paths vary. For the exact SillyTavern 1.17.0 mechanisms behind these host actions, load [sillytavern-1.17-host-operations.md](sillytavern-1.17-host-operations.md). That adapter maps version-specific surfaces only; this state machine remains the single source for operational policy, ordering, retries, rollback, cleanup, and promotion. The installed runtime remains authoritative.
 
 ## Nonvisual-first adapter
 

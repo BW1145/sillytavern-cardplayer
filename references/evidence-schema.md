@@ -131,6 +131,13 @@ Produce JSON plus a concise human summary. Use `pass`, `fail`, `blocked`, `not_a
   "player": {
     "seed": "recorded seed",
     "userPlayObjective": "complete the user-supplied objective",
+    "audienceProfile": {
+      "summary": "tentative audience context",
+      "softTraits": ["topic interest: uncertain", "risk attitude: unspecified"],
+      "rationale": "title, character configuration, and worldbook overview only",
+      "sourceScope": ["title", "character configuration", "worldbook overview"],
+      "withheldFactsConfirmed": true
+    },
     "terminationReason": "objective completed, failed, blocked, needs user decision, or user stopped",
     "turns": [
       {

@@ -4,7 +4,7 @@ Use this reference for one user-defined human-play task. The session tests wheth
 
 ## Start gate
 
-Record `userPlayObjective`. If the user has not already supplied it, ask what the simulated player should try to accomplish. Do not impose a turn count. Create one isolated chat and use one continuous simulated player.
+Record `userPlayObjective`. If the user has not already supplied it, ask what the simulated player should try to accomplish. Do not impose a turn count. Create one isolated chat and use one continuous simulated player. Also record the sanitized `audienceProfile` produced during the opening gate, including its rationale; it may contain only soft tendencies from the title, character configuration, and worldbook overview, with withheld plot answers and hidden facts confirmed.
 
 Keep two logical compartments:
 
@@ -56,4 +56,4 @@ future_replay: scenario that would test the proposal
 pass_condition: observable acceptance result
 ```
 
-Finish with the run result, termination reason, technical findings, experience findings, and proposals. Set `nextOwner` to `user` and stop. Do not edit source, rebuild a candidate, or start another playtest until the user decides what to change.
+Finish with the run result, termination reason, the `audienceProfile` and its rationale, technical findings, experience findings, and proposals. Set `nextOwner` to `user` and stop. Do not edit source, rebuild a candidate, or start another playtest until the user decides what to change.
