@@ -35,23 +35,23 @@ Use the mode named by the user. When both technical correctness and human experi
 
 Prefer filesystem or verified host API, then documented runtime bridge, then semantic DOM, and only then visual or coordinate control. Ordinary candidates go directly to the verified character store; use the import UI only when import behavior is under test. Human simulation concerns decisions, not slow mouse imitation. Read [sillytavern-operation-state-machine.md](references/sillytavern-operation-state-machine.md) for the operational contract.
 
-Lock one `deploymentMethod` before the first host write. `direct-store` and `import-ui` are mutually exclusive for that candidate iteration. A directly copied card that is not yet visible remains `deployed-unverified`; it is a recognition/cache problem, not permission to import or create the candidate again. Re-inventory the exact path and hash, refresh or reload the host against that same file, and stop `blocked` if recognition cannot be proved. Before creating a test chat, prove exactly one matching candidate payload exists in the character store and exactly one matching test identity is visible to the host.
+Classify the target and lock the deployment method before the first write using [sillytavern-operation-state-machine.md](references/sillytavern-operation-state-machine.md). Creating an absent slot, updating a host-owned slot, and replacing a proven-quiescent file are distinct methods. A transport failure does not authorize a method switch. Do not create a chat until disk payload, host identity, uniqueness, and the post-save reverse-write guard all pass.
 
 ## Shared host loop
 
 1. Record authority, host, active character/chat, preservation boundary, stop conditions, and allowed cleanup.
 2. Validate the immutable candidate receipt, JSON/PNG parity, hashes, identity, and worldbook mode.
-3. Deploy atomically, refresh the host, and prove the running identity; a disk write alone is `deployed-unverified`.
+3. Deploy atomically, refresh the host, and prove the running identity; a disk write alone is `deployed-unverified`. Apply the state machine's linked-worldbook deployment and readiness policy before generation.
 4. Create the isolated chat, prove runtime readiness, and run only the selected mode's checks. Compare prose, update mechanism, persisted state, and HUD for every state-changing turn.
-5. Diagnose the first failing layer. Authorized deterministic repair may rebuild and refresh the same test slot; human play ends with complete-chat analysis and returns to the user.
-6. Promote production only through the pre-authorized `variable-repair` path defined by the handoff and host-state references. On success clean only run-owned artifacts; on failure verify rollback before cleanup.
+5. Diagnose the first failing layer and apply the state machine's diagnostic-regeneration and observation-tolerance policy. Human play still ends with complete-chat analysis and returns to the user.
+6. Promote production only through the pre-authorized `variable-repair` path, then apply the state machine's rollback and cleanup policy.
 
 ## Hard gates
 
 - Perform one persistent mutation at a time and prove its postcondition. A timeout is not a verdict; external user action invalidates stale observations.
 - Common host, model, provider, network, extension, persistence, and rendering anomalies can resemble card failures. Consult the common-anomaly table in `test-matrix.md` and do not attribute those symptoms to the card without causal evidence. If an anomaly makes reliable testing impossible, stop, preserve the observed and environmental evidence, list the untested scope, and return to the user.
-- Never switch deployment methods after a candidate write. In particular, never use the import UI as a retry, discovery aid, or cache workaround for a directly deployed candidate.
-- Missing-reply recovery permits at most three regenerations after the initial generation. Before every regeneration, re-read generation state and persisted message count: wait if generation is still active, stop retrying if an assistant floor appeared, and regenerate only after terminal generation with no persisted reply is proven. If the third regeneration also ends without a reply, stop all automation, report the evidence to the user, and wait for their decision.
+- Apply the missing-reply recovery policy in the host state machine.
+- Do not treat character replacement as worldbook replacement. An unreadable, stale, or wrongly converted worldbook is a deployment failure and is never eligible for diagnostic regeneration.
 - Never patch a deployed card, packed output, live worldbook, or live message variables to make acceptance pass.
 - Preserve production chats and unrelated cards, worldbooks, settings, input text, credentials, and private extension data.
 - A run-created isolated chat is readable. Any pre-existing chat requires exact identity and authorized access level before reading.

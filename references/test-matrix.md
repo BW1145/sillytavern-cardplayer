@@ -28,10 +28,17 @@ Every declared mutable domain must have a fixture or appear in `untestedScope` w
 | --- | --- | --- |
 | Active identity | select freshly deployed candidate | running version/file/capabilities match receipt |
 | Deployment uniqueness | inventory the store and host list before chat creation | one matching candidate payload, one matching host identity, and one recorded deployment method/creation attempt |
-| Cache-miss recovery | directly deploy, then encounter a stale or missing host-list entry | refresh/reload/re-index the same slot only; no import UI, alternate filename, or second candidate is created |
+| Host-owned slot selection | refresh a slot whose identity is active, loaded, cached, or otherwise host-writable | [state-machine policy](sillytavern-operation-state-machine.md) selects `host-managed-update` with a verified installed-version update contract, or the run is `blocked`; no hot replacement or post-write method switch occurs |
+| Reverse-write guard | update an existing slot that previously held older embedded metadata | first and post-save-boundary hashes plus decoded and running identities match the candidate, with no host-object reversion, before chat creation |
+| Linked-worldbook import | update a candidate whose V2 `character_book` feeds a linked host worldbook | apply the canonical [state-machine policy](sillytavern-operation-state-machine.md); receipt evidence proves the ordered operations completed and the post-import PNG identity still matches |
+| Worldbook readiness | inspect the saved linked worldbook before generation | pointer and content identity match; native entry shape is readable; every declared critical entry is present; list-name equality alone does not pass |
+| Disposable delete/re-import | consider deleting a run-owned test slot while prior chat linkage must be preserved | fallback is ineligible unless target unload and write quiescence, explicit authority, and out-of-scope chat-linkage preservation are proven; it never authorizes production promotion |
+| Cache-miss recovery | encounter a stale or missing host-list entry | apply the canonical [state-machine policy](sillytavern-operation-state-machine.md); unresolved recognition stops `blocked` without creating another candidate or switching methods |
 | Fresh chat | create isolated chat | new chat identity; existing chats retained |
 | Opening | use declared first-message or zero-layer path | one submission, one initialized assistant reply, no duplicate binding |
-| Missing-reply recovery | encounter terminal generation without a persisted assistant floor | before each of at most three regenerations, generation is re-probed and floor absence is proven; recovery stops immediately if a reply appears; a third verified failure halts all automation and returns the decision to the user |
+| Missing-reply recovery | encounter terminal generation without a persisted assistant floor | apply the canonical [state-machine policy](sillytavern-operation-state-machine.md) and record its terminal outcome without inventing a new retry limit |
+| Diagnostic regeneration | receive one persisted reply with an isolated likely model-format or settlement deviation after readiness passed | apply the canonical [state-machine policy](sillytavern-operation-state-machine.md); original and replacement outcomes remain attributable in the receipt |
+| Observation tolerance | find a noncritical prose/update/state/HUD discrepancy while later evidence remains trustworthy | apply the canonical [state-machine policy](sillytavern-operation-state-machine.md); the receipt records recurrence and whether testing continued or escalated |
 | Pure interaction | send dialogue/inspection with no declared time cost | narrative continues; time/resources do not change unexpectedly |
 | Standard action | perform one plausible time/cost action | declared time, energy, resources, and consequences settle once |
 | Transaction | consume, acquire, equip, spend, or otherwise change one applicable tracked value | prose, update, persisted state, and HUD agree on quantity/location |
@@ -43,7 +50,7 @@ Every declared mutable domain must have a fixture or appear in `untestedScope` w
 | Swipe | replace a settled assistant reply through the host Swipe path | active branch owns the authoritative state; abandoned branch does not leak events or values |
 | Edit | edit an applicable user or assistant floor and continue | declared recomputation policy is followed; no duplicate settlement or stale HUD remains |
 | Chat switch | switch away from and back to the isolated chat | each chat restores its own state; no cross-chat variables, listeners, input, or pending events leak |
-| Stable-slot refresh | deploy a rebuilt candidate after one repair iteration | the same test-card filename and embedded display name now report the new candidate ID/hash; disk and host uniqueness counts remain one |
+| Stable-slot refresh | deploy a rebuilt candidate after one repair iteration | the same test-card filename and embedded display name now report the new candidate ID/hash; exactly one disk payload and one host identity remain, with stable post-save decoded metadata |
 | Iteration isolation | open the rebuilt candidate after refreshing the stable slot | a fresh isolated test chat initializes without state from the previous iteration |
 
 Use card-specific required checks and forbidden regressions from the candidate receipt in addition to this matrix.
@@ -57,8 +64,8 @@ Run these rows only when `variable-repair` recorded production-replacement autho
 | Production parity | build the production-identity artifact from the passing source revision | semantic card surfaces match the passing candidate; only declared identity or packaging fields differ |
 | Production replacement | quiesce writes, back up production, atomically replace, and fully reload | the host reports the expected production filename, embedded identity, payload hash, scripts, regexes, and worldbook mode |
 | Production smoke | initialize and perform one settlement/persistence/HUD smoke sequence | production behavior matches the passing candidate on every declared smoke surface |
-| Success cleanup | remove artifacts owned by this run | stable test card, run-created chats, test-only standalone worldbooks, and obsolete temporary files are absent; production chats and unrelated data remain |
-| Rollback | intentionally exercised only when promotion verification fails | the exact backup hash and running production identity are restored before test-slot cleanup |
+| Success cleanup | remove obsolete artifacts owned by this run | one stable test card/worldbook pair and only the latest accepted test chat remain; older run chats, duplicate/temporary worldbooks, and temporary files are absent; production chats and unrelated data remain |
+| Rollback | intentionally exercised only when promotion verification fails | the exact backup hash and running production identity are restored before obsolete-artifact cleanup |
 
 ## Four-layer consistency
 

@@ -33,11 +33,73 @@ Produce JSON plus a concise human summary. Use `pass`, `fail`, `blocked`, `not_a
     ]
   },
   "deployment": {
-    "method": "direct-store",
+    "method": "host-managed-update",
+    "targetInitialState": "existing",
+    "targetInitialSha256": "...",
+    "targetWasLoaded": true,
+    "quiescenceEvidence": ["verified host-managed update contract"],
     "creationAttempts": 1,
+    "firstPostDeploySha256": "...",
+    "postSaveBoundarySha256": "...",
+    "decodedIdentity": {
+      "firstPostDeploy": {
+        "displayName": "Example Card [Test]",
+        "version": "test.2",
+        "worldbookMode": "linked",
+        "worldbookName": "__cardplayer_test__example-card-worldbook",
+        "linkedWorldbook": {
+          "pointer": "worldbook:__cardplayer_test__example-card-worldbook",
+          "contentIdentity": "Example Card [Test] / test.2"
+        }
+      },
+      "postSaveBoundary": {
+        "displayName": "Example Card [Test]",
+        "version": "test.2",
+        "worldbookMode": "linked",
+        "worldbookName": "__cardplayer_test__example-card-worldbook",
+        "linkedWorldbook": {
+          "pointer": "worldbook:__cardplayer_test__example-card-worldbook",
+          "contentIdentity": "Example Card [Test] / test.2"
+        }
+      }
+    },
+    "runningIdentity": {
+      "firstPostDeploy": {
+        "displayName": "Example Card [Test]",
+        "version": "test.2",
+        "worldbookMode": "linked",
+        "worldbookName": "__cardplayer_test__example-card-worldbook",
+        "linkedWorldbook": {
+          "pointer": "worldbook:__cardplayer_test__example-card-worldbook",
+          "contentIdentity": "Example Card [Test] / test.2"
+        }
+      },
+      "postSaveBoundary": {
+        "displayName": "Example Card [Test]",
+        "version": "test.2",
+        "worldbookMode": "linked",
+        "worldbookName": "__cardplayer_test__example-card-worldbook",
+        "linkedWorldbook": {
+          "pointer": "worldbook:__cardplayer_test__example-card-worldbook",
+          "contentIdentity": "Example Card [Test] / test.2"
+        }
+      }
+    },
+    "hostObjectReversion": false,
     "diskPayloadMatchCount": 1,
     "hostIdentityMatchCount": 1,
-    "visibilityRecovery": ["page reload"]
+    "visibilityRecovery": ["page reload"],
+    "worldbookInstall": {
+      "method": "installed-version card-lore conversion",
+      "sourceFormat": "v2-character-book",
+      "previousStableWorldbookRemoved": true,
+      "newCharacterInMemoryBeforeImport": true,
+      "nativeEntryShape": "entries keyed by uid",
+      "contentIdentity": "Example Card [Test] / test.2",
+      "criticalEntries": {"[InitVar]": "present", "update protocol": "present"},
+      "readable": true,
+      "postImportPngIdentityPreserved": true
+    }
   },
   "environment": {
     "sillyTavernVersion": "detected version",
@@ -48,14 +110,23 @@ Produce JSON plus a concise human summary. Use `pass`, `fail`, `blocked`, `not_a
     "dependencies": []
   },
   "authority": {
-    "allowedMutations": ["isolated candidate deploy", "isolated chat"],
-    "forbiddenMutations": ["production replacement", "test cleanup"],
+    "allowedMutations": ["isolated candidate deploy", "isolated chat", "obsolete run-owned artifact cleanup"],
+    "forbiddenMutations": ["production replacement", "unrelated artifact cleanup"],
     "preExistingChatReadScope": []
   },
   "chat": {
     "identity": "test chat identity",
     "startingMessageCount": 0,
-    "endingMessageCount": 6
+    "endingMessageCount": 6,
+    "diagnosticRegenerations": [
+      {
+        "originalFloor": "floor identity",
+        "reason": "isolated likely model-format deviation",
+        "samePreTurnStateVerified": true,
+        "replacementFloor": "floor identity",
+        "result": "variance | repeated"
+      }
+    ]
   },
   "player": {
     "seed": "recorded seed",
@@ -99,6 +170,9 @@ Produce JSON plus a concise human summary. Use `pass`, `fail`, `blocked`, `not_a
         "causalChain": ["visible stimulus", "chosen option", "card response", "later effect"],
         "classification": "technical | systemic | variance | blocked",
         "confidenceBasis": "repetition, replay, or rule evidence",
+        "occurrenceCount": 1,
+        "independentChatCount": 1,
+        "disposition": "observe | repair | blocked",
         "affectedSurface": "source | worldbook | prompt | UI | variable layer | provider",
         "recommendedChange": "smallest plausible correction",
         "expectedSideEffects": "...",
@@ -126,9 +200,9 @@ Produce JSON plus a concise human summary. Use `pass`, `fail`, `blocked`, `not_a
     "rollbackStatus": "not_applicable"
   },
   "cleanup": {
-    "status": "not_run",
-    "removed": [],
-    "retained": ["stable test card", "test chat", "receipt"],
+    "status": "pass",
+    "removed": ["older run-created test chats", "temporary worldbooks and files"],
+    "retained": ["stable test card", "stable test worldbook", "latest run-created test chat", "receipt"],
     "preserved": ["production card and chats", "unrelated cards and worldbooks"]
   },
   "retainedArtifacts": ["..."],
@@ -147,7 +221,7 @@ Produce JSON plus a concise human summary. Use `pass`, `fail`, `blocked`, `not_a
 }
 ```
 
-Omit mode-inapplicable or unavailable optional detail rather than inventing it. `player` and `analysis` are required for `human-playtest`; deterministic fixture evidence is required for `variable-repair`. `stableTestSlot` and `deployment` are required for a repair loop. `deployment` must record the single locked method, creation-attempt count, and disk/host uniqueness counts before chat creation. `promotion` and `cleanup` are required when production replacement was authorized, including failed attempts and rollback evidence. Keep exact message text only when needed to reproduce; otherwise summarize. Never include secrets, cookies, API keys, authentication headers, private unrelated settings, or unrelated chat content.
+Omit mode-inapplicable or unavailable optional detail rather than inventing it. `player` and `analysis` are required for `human-playtest`; deterministic fixture evidence is required for `variable-repair`. `stableTestSlot` and `deployment` are required for a repair loop. `deployment` must record the single locked method, target initial state and hash, target-loaded state, quiescence evidence, creation-attempt count, both post-deploy hashes, and stage-keyed `decodedIdentity` and `runningIdentity` evidence for the `firstPostDeploy` and `postSaveBoundary` reads (each with display name, version, worldbook mode, and worldbook name), plus host-object reversion and disk/host uniqueness counts before chat creation. When worldbook mode is `linked`, also record the stable pointer plus `worldbookInstall`: prior stable-book removal, refreshed in-memory character identity before import, verified import/conversion method, source format, native entry shape, content identity, readability, declared critical-entry results, and preserved post-import PNG identity. Character replacement alone is never evidence of a worldbook update. For an existing slot, both post-deploy hashes, both decoded identity reads, and both running identity reads are required before `active-verified`. Record an optional one-shot diagnostic regeneration only after readiness passes, and include issue recurrence counts/disposition so isolated noncritical observations do not become automatic repairs. `promotion` and `cleanup` are required when production replacement was authorized, including failed attempts, rollback evidence, deletion of older run chats, and retention of only the latest run-created test chat. Keep exact message text only when needed to reproduce; otherwise summarize. Never include secrets, cookies, API keys, authentication headers, private unrelated settings, or unrelated chat content.
 
 ## Status rules
 

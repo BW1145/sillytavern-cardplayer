@@ -39,32 +39,43 @@ Record every material action with `actor: automation | user | model | host`. A u
 
 ## Candidate deployment
 
-Use direct deployment to the verified character store for ordinary candidate tests. The SillyTavern import UI is reserved for an explicit import-workflow acceptance row; it is not the fallback for missing upload automation and must not be used merely to simulate a human.
+Classify the declared target before any candidate write and record one immutable `deploymentMethod` for the iteration. The operation state machine owns these mechanics; the handoff supplies only the target and authority inputs.
 
-Record one immutable `deploymentMethod` before the first write:
+- If the slot is absent on disk and in host inventory, lock `direct-store-create` or `host-managed-create`.
+- If the slot exists and the host is stopped, or target unload plus write quiescence are directly proven, lock `quiescent-store-replace`.
+- For an existing run-owned/disposable test slot, `disposable-delete-reimport` is eligible only when target unload and write quiescence are proven, `deleteReimportAuthorized` is true, and `preserveChatLinkage` is false.
+- Otherwise, if the slot exists or its identity is active, loaded, cached, or may be host-saved, lock `host-managed-update` through the installed-version verified replace/update contract.
+- If no classification can be proved, stop `blocked` before mutation.
 
-- `direct-store` is the default. Its only candidate-creation mutation is the temporary copy plus atomic rename into the declared stable slot.
-- `import-ui` is allowed only when the receipt explicitly includes import-workflow acceptance. In that case the direct-store path must remain absent and the UI submission may occur once.
-- Do not switch methods within an iteration. A timeout, stale list, or missing visible card after either method is a recognition failure, not authorization for a second creation attempt.
+Method meanings are fixed:
+
+- `direct-store-create` copies once to a non-card temporary extension, verifies its size and SHA-256 against the candidate receipt, then atomically renames it into a proven-absent slot.
+- `disposable-delete-reimport` is a single locked delete/re-import operation, selected before any candidate write, only for an existing run-owned/disposable test slot after its target unload and write quiescence are proven, with `deleteReimportAuthorized: true` and `preserveChatLinkage: false`. It is never eligible for production promotion.
+- `host-managed-create` is a version-verified host create operation for a proven-absent slot.
+- `host-managed-update` preserves the exact stable-slot identity while the host synchronizes its cache, metadata, and PNG. A UI file chooser and a verified local update request are transports of this same method, not different deployment methods.
+- `quiescent-store-replace` atomically replaces the recorded path only after its current hash matches the receipt and no live stale object can write it.
+
+Do not switch methods after a candidate write. A transport failure before any write may use another verified transport for the same locked method, but may not select a new deployment method. `disposable-delete-reimport` cannot be a transport or cache recovery after another locked method. The import UI is reserved for an explicitly accepted import-workflow transport and is never a recognition or cache workaround.
 
 1. Resolve the character directory to an absolute path and prove it is inside the active user's data root.
 2. Verify the target store's accepted format from the installed version. For the common PNG store, require a decoded and parity-checked character PNG; never copy the source JSON as a character file.
-3. Resolve the declared target. On first `variable-repair` deployment, the stable test-slot path must be absent. On later iterations, replace only that recorded path after its current hash matches the previous deployment receipt. Other modes fail rather than overwrite an existing character.
-4. Copy to a non-card temporary extension in the same target directory, verify size and SHA-256, then atomically rename or replace the final extension. Never patch a deployed PNG.
-5. Deploy declared standalone/linked test worldbooks under run-scoped names only when required. Embedded `character_book` content needs no separate copy.
-6. Trigger the target version's safe list refresh or page reload. Do not infer live recognition from the file alone.
-7. Resolve exactly one candidate in the refreshed runtime inventory by the declared test filename plus embedded/display identity, activate it with a version-verified host operation, and re-read its running display name, version, filename, worldbook mode, scripts, regexes, and capability markers. If direct activation is unavailable, use exact search and require one semantic result before activation. Never use list position, recency sorting, avatar artwork, visual card-wall scanning, or coordinates to discover the candidate.
+3. Classify the target using disk and refreshed host inventory. On first `variable-repair` deployment, the stable test-slot path must be absent. On later iterations, replace only the recorded path after its current hash matches the previous deployment receipt. Other modes fail rather than overwrite an existing character. For an existing slot, first record its exact path, current hash, decoded identity/version/worldbook metadata, and active character/chat.
+4. Before an existing-slot replacement, move away from the target and prove it inactive. Prove generation, variable settlement, helper writes, character saves, and relevant persistence are quiescent using the strongest version-supported signal; elapsed time alone is insufficient. If unload or quiescence cannot be proven, only the already locked `host-managed-update` with its verified update contract may proceed; otherwise stop `blocked`. These gates never authorize hot replacement.
+5. Before updating a candidate with a linked test worldbook, remove the previous same-name worldbook only when its exact stable-test identity and deletion authority are proven; otherwise stop before mutation. Then perform the one locked character method. `direct-store-create` and `host-managed-create` may only create a proven-absent slot; `quiescent-store-replace` may only replace the recorded hash-matching path; `disposable-delete-reimport` may only act under its proven disposal contract; `host-managed-update` may only use the verified installed-version update contract. Never patch a deployed PNG.
+6. Treat character and linked-worldbook updates as separate ordered host operations. Immediately after the character update, fully refresh/reload, reselect the exact test identity, and prove the in-memory character and decoded PNG match the new candidate before touching worldbook controls. Then reuse the one stable test-worldbook name. When its source is V2 `character_book.entries[]`, use the installed version's built-in **Import Card Lore** conversion path, or a verified equivalent that invokes the same converter, before saving native world info. Never submit the V2 array directly as native worldbook data. A worldbook operation that runs while an old character object remains loaded can save that stale object back into the PNG; therefore re-read the PNG hash and decoded identity after the import.
+7. Fully refresh or reload the host, then prove exactly one stored payload and exactly one host identity. At the first post-deploy observation, verify all declared candidate surfaces, including the hash, decoded payload, running identity/version, worldbook and its linked pointer when applicable, scripts, regexes, and capabilities. For a linked worldbook, read the saved native object, require the installed version's native entry shape, match its declared content/version identity, and find every receipt-declared critical entry such as `[InitVar]` and the update protocol. A matching list name alone is insufficient. Resolve the candidate by the declared test filename plus embedded/display identity, activate it with a version-verified host operation, and re-read all declared candidate surfaces. If direct activation is unavailable, use exact search and require one semantic result before activation. Never use list position, recency sorting, avatar artwork, visual card-wall scanning, or coordinates to discover the candidate.
+8. Observe the strongest available host-save or quiescence boundary, then at the post-save-boundary observation re-read all declared candidate surfaces, including the disk hash, decoded metadata, and linked-worldbook pointer, native structure, content identity, readability, and critical entries when applicable. Only a matching second read, together with the decoded and running identity evidence, becomes `active-verified` and may create a chat. A host-object reversion or unreadable/stale worldbook is a deployment failure: preserve evidence and stop without switching methods or spending a model regeneration.
 
-If step 6 does not reveal a directly deployed candidate:
+If the refreshed host does not reveal the candidate:
 
 1. Re-read the declared slot path, SHA-256, and decoded embedded identity. If any differs, fail at deployment integrity.
-2. Use only the installed version's safe list refresh, full page reload, or documented re-index operation against the same slot.
-3. Re-inventory the host list. Do not copy again, change filenames, or open the import UI.
-4. If the same file still cannot be recognized, stop `blocked` with the file and cache evidence. Do not create a chat.
+2. Use only the installed version's safe list refresh, full page reload, or documented re-index operation against the same locked method and target.
+3. Re-inventory the host list. Do not copy again, change filenames, or use a different transport or deployment method as a visibility retry.
+4. If the same target still cannot be recognized, stop `blocked` with the file and cache evidence. Do not create a chat.
 
-Before step 7 can become `active-verified`, inventory both layers: exactly one stored payload may match the candidate hash/slot identity, and exactly one host entry may expose the declared test display name. If either count exceeds one, stop before testing. Clean up only duplicates created by this run and only within recorded cleanup authority; otherwise report the collision to the user.
+Before step 8 can become `active-verified`, inventory both layers: exactly one stored payload may match the candidate hash/slot identity, and exactly one host entry may expose the declared test display name. If either count exceeds one, stop before testing. Clean up only duplicates created by this run and only within recorded cleanup authority; otherwise report the collision to the user.
 
-State after step 4 is `deployed-unverified`; a visibility miss stays in that state; state after step 7 plus the two-layer uniqueness check is `active-verified`.
+State after step 5 is `deployed-unverified`; a visibility miss stays in that state; only step 8 plus the two-layer uniqueness check is `active-verified`.
 
 Every rebuilt candidate gets a new isolated chat unless migration or old-chat compatibility is the acceptance target. Reusing the stable test slot must not reuse earlier MVU state.
 
@@ -112,6 +123,15 @@ Split a long operation into initiation and observation. A driver timeout may occ
 - If the third regeneration also reaches a verified terminal state without a persisted assistant floor, stop every pending action. Do not regenerate a fourth time, send or resend a user message, edit/delete the chat, continue testing, repair the card, promote production, or clean up the failure scene. Report the three attempts, identities, message counts, terminal states, relevant sanitized logs, and retained artifacts to the user, then wait for their decision.
 - Never send a second user action while generation or variable settlement is still active.
 
+## Diagnostic regeneration and observation tolerance
+
+This policy applies only after candidate, pointer, native worldbook structure, content identity, critical entries, and runtime readiness have passed.
+
+- For one persisted reply with an isolated likely model-format or settlement deviation, record the original floor and four-layer evidence. If the host can replace the branch from the identical pre-turn state without leaking abandoned state, perform at most one diagnostic regeneration/Swipe of that reply.
+- If the diagnostic reply passes, classify the first result as `variance`, keep both observations in the receipt, and continue without a card change by default. If it repeats, classify the earliest proven causal layer; do not add aliases or prompt rules merely to accommodate every one-off output.
+- A noncritical prose/update/state/HUD mismatch is an observation, not an automatic repair trigger. Record it and continue on a trustworthy state when safe. Escalate to a fix candidate when the same defect reaches a third occurrence, appears in two independent chats, blocks a required core path, or corrupts later evidence.
+- If the mismatch makes authoritative state ambiguous or unsafe to continue, create a fresh isolated chat for further coverage. This preserves evidence but does not by itself prove the card needs modification.
+
 ## External interaction and stale state
 
 The user may click, regenerate, switch chats, or edit input while automation is running. On any unexpected message count, dialog, active character, chat, or input change:
@@ -140,15 +160,15 @@ test-passed
 -> host fully reloaded
 -> production identity and complete payload verified
 -> initialization, settlement, persistence, and HUD smoke passed
--> run-owned test artifacts removed
+-> obsolete run-owned artifacts removed; stable test pair and latest test chat retained
 ```
 
 Prove quiescence using the strongest available host or extension signal; elapsed time alone is insufficient. The production artifact must come from the same source revision as the passing candidate and may differ only in declared identity fields and required packaging metadata.
 
-If any post-promotion check fails, roll back according to the recorded initial state before deleting the test slot. For `existing`, restore the exact backup atomically and verify its SHA-256 and running identity after reload. For `absent`, remove only the run-created production target and reload until both its exact path and host identity are absent. Record the failed promotion and rollback evidence; a filesystem mutation alone is not a verified rollback.
+If any post-promotion check fails, roll back according to the recorded initial state before cleanup. For `existing`, restore the exact backup atomically and verify its SHA-256 and running identity after reload. For `absent`, remove only the run-created production target and reload until both its exact path and host identity are absent. Record the failed promotion and rollback evidence; a filesystem mutation alone is not a verified rollback.
 
 ## End and cleanup
 
 Mark every mutation: deployed file, standalone worldbook, created test chat, generated floor, setting change, reload, retry, production replacement, rollback, and deletion. Restore temporary nonpersistent UI state when safe.
 
-After successful authorized promotion, delete only artifacts recorded as owned by this run: the stable test card, its run-created chats, run-owned standalone test worldbooks, and obsolete temporary files. Preserve production chats, unrelated cards and worldbooks, extension settings, the structured receipt, and one rollback backup outside SillyTavern data stores only when production previously existed. On failure or blockage, capture evidence first and do not mutate production beyond the verified rollback path.
+Unless a stop policy explicitly freezes the failure scene for user review, after writing the receipt delete only run-owned obsolete artifacts: older test chats from this run, duplicate/temporary worldbooks, and temporary deployment files. Keep one stable test card, its one stable test worldbook when declared, and only the latest run-created test chat: the latest accepted chat on success or the latest diagnostic chat on failure/blockage. Preserve production chats, unrelated cards and worldbooks, extension settings, the receipt, and one rollback backup outside SillyTavern data stores only when production previously existed. On failure or blockage, capture evidence before cleanup and do not mutate production beyond the verified rollback path.
