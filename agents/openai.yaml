@@ -1,0 +1,4 @@
+interface:
+  display_name: "SillyTavern Cardplayer"
+  short_description: "在真实SillyTavern中模拟真人玩家并自动闭环测试角色卡"
+  default_prompt: "Use $sillytavern-cardplayer to deploy and playtest this SillyTavern card in an isolated test chat."
