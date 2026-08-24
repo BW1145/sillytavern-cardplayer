@@ -114,6 +114,22 @@ host dependency/provider/driver
 
 Do not fix downstream symptoms before proving the earliest failing layer.
 
+## Common non-card anomalies
+
+SillyTavern, the model, provider, network, extensions, persistence, and rendering pipeline can produce transient symptoms that resemble card defects. Use this table as a reminder, not as an alternative diagnosis.
+
+| Symptom | Possible non-card cause | Handling |
+| --- | --- | --- |
+| Reasoning appears unwrapped or mixed into the visible reply | reasoning template or Auto-Parse mismatch, provider response fields, model formatting variance, or display parsing | capture the raw, persisted, and displayed forms when available; do not blame the card from this symptom alone |
+| Generation ends without a persisted assistant reply | empty provider response, reasoning consuming the response allowance, interrupted streaming, response parsing, or save timing | use the existing recovery policy; stop if reliable testing cannot continue |
+| A reply ends abruptly | response-token limit, stop strings, network interruption, or provider termination | record the finish reason and response boundary; use existing recovery when appropriate |
+| The backend has text but the chat is blank or incomplete | reasoning extraction, regex, Markdown, DOM rendering, or adapter mapping | compare the provider response, persisted message, and rendered layer before attribution |
+| Generation stalls or becomes unusually slow | provider queue or rate limit, network instability, background-browser suspension, or host load | wait or stop as appropriate; do not treat latency alone as a card failure |
+| The active model, connection, character, or chat is unexpected | incomplete profile switching, stale UI or cache, another tab, or user intervention | re-establish the active identity; stop if the evidence baseline is no longer trustworthy |
+| HUD, controls, or variables update late once | extension readiness, persistence or settlement delay, or page lifecycle timing | wait for runtime stability and re-check; do not classify a one-off delay by itself |
+
+These are possibilities, not conclusions. Continue with the existing evidence and recovery workflow. If an anomaly makes later evidence unreliable or prevents further operation, stop automation and report the observed symptom, relevant environment, completed and untested scope, and that card causation was not established.
+
 ## Quality observations
 
 Record evidence-backed observations without numeric scoring: repeated actions or phrases, unclear affordances, ignored choices, unsolicited railroading, NPC loss of continuity, impossible success grants, refusal to accept reasonable creativity, and long stretches without meaningful feedback. Keep subjective quality observations separate from hard runtime failures. Report the selected mode's result separately from release status and list all declared capabilities not exercised in the run.

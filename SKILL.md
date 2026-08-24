@@ -49,6 +49,7 @@ Lock one `deploymentMethod` before the first host write. `direct-store` and `imp
 ## Hard gates
 
 - Perform one persistent mutation at a time and prove its postcondition. A timeout is not a verdict; external user action invalidates stale observations.
+- Common host, model, provider, network, extension, persistence, and rendering anomalies can resemble card failures. Consult the common-anomaly table in `test-matrix.md` and do not attribute those symptoms to the card without causal evidence. If an anomaly makes reliable testing impossible, stop, preserve the observed and environmental evidence, list the untested scope, and return to the user.
 - Never switch deployment methods after a candidate write. In particular, never use the import UI as a retry, discovery aid, or cache workaround for a directly deployed candidate.
 - Missing-reply recovery permits at most three regenerations after the initial generation. Before every regeneration, re-read generation state and persisted message count: wait if generation is still active, stop retrying if an assistant floor appeared, and regenerate only after terminal generation with no persisted reply is proven. If the third regeneration also ends without a reply, stop all automation, report the evidence to the user, and wait for their decision.
 - Never patch a deployed card, packed output, live worldbook, or live message variables to make acceptance pass.
