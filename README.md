@@ -23,10 +23,10 @@ Cardplayer 将“为了好玩”和“为了找问题”明确分开。娱乐模
 
 ## 安装
 
-让 Codex 从本仓库安装，或手动执行：
+让你的 AI Agent 将本仓库克隆到它使用的 Skill 目录：
 
 ```powershell
-git clone https://github.com/BW1145/sillytavern-cardplayer.git "$HOME/.codex/skills/sillytavern-cardplayer"
+git clone https://github.com/BW1145/sillytavern-cardplayer.git
 ```
 
 ## 使用
